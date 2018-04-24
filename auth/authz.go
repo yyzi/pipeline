@@ -64,6 +64,9 @@ type BearerAuthorizer struct {
 // Currently, only HTTP Bearer token authentication is supported
 func (a *BearerAuthorizer) GetUserID(r *http.Request) string {
 	user := GetCurrentUser(r)
+	if user.ID == 0 {
+		return user.Login // This is needed for Drone virtual user tokens
+	}
 	return user.IDString()
 }
 
@@ -104,6 +107,10 @@ func AddOrgRoleToUser(userID uint, orgids ...uint) {
 	for _, orgid := range orgids {
 		enforcer.AddRoleForUser(fmt.Sprint(userID), orgRoleName(orgid))
 	}
+}
+
+func AddOrgRoleToVirtualUser(userID string, orgid uint) {
+	enforcer.AddRoleForUser(userID, orgRoleName(orgid))
 }
 
 func DeleteOrgRoleFromUser(userID uint, orgid uint) {
